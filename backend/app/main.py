@@ -35,6 +35,10 @@ def _parse_cors_origins() -> tuple[list[str], bool]:
     origins = [o.strip() for o in raw.split(",") if o.strip()]
     return (origins or ["http://127.0.0.1:3000", "http://localhost:3000"]), True
 
+@app.get("/")
+def home():
+    return {"message": "Yojna Connect API is running 🔥"}
+
 
 # ─── Lifespan: Startup & Shutdown ─────────────────────────────────────────────
 @asynccontextmanager
