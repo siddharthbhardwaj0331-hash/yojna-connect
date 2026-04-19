@@ -1,6 +1,5 @@
 """
 Yojna AI - Main Application Entry Point
-========================================
 """
 
 from __future__ import annotations
@@ -12,27 +11,23 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.database.mongodb import connect_to_mongo, close_mongo_connection, seed_schemes
 from app.routes import users, schemes
 from app.routes.chat import router as chat_router
 from app.utils.config import settings
 from app.utils.logger import setup_logger
 
+# ✅ Logger MUST be here (top pe)
 logger = setup_logger(__name__)
 
-# ─── Lifespan ─────────────────────────────────────────────
+# ─── Lifespan ─────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🚀 Starting Yojna AI Backend...")
-    await connect_to_mongo()
-    await seed_schemes()
-    logger.info("✅ Database connected.")
     yield
     logger.info("🛑 Shutting down...")
-    await close_mongo_connection()
 
 
-# ─── App Init ─────────────────────────────────────────────
+# ─── App Init ─────────────────────────────
 app = FastAPI(
     title="Yojna AI",
     version="1.0.0",
@@ -41,13 +36,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ─── BASIC ROUTE (IMPORTANT) ─────────────────────────────
+# ─── BASIC ROUTE ──────────────────────────
 @app.get("/")
 def home():
     return {"message": "Yojna Connect API is running 🔥"}
 
 
-# ─── Routers ─────────────────────────────────────────────
+# ─── Routers ─────────────────────────────
 app.include_router(chat_router)
 
 API_PREFIX = "/api"
@@ -55,7 +50,7 @@ app.include_router(users.router, prefix=f"{API_PREFIX}/user", tags=["User"])
 app.include_router(schemes.router, prefix=f"{API_PREFIX}/schemes", tags=["Schemes"])
 
 
-# ─── CORS ─────────────────────────────────────────────
+# ─── CORS ─────────────────────────────
 def _parse_cors_origins():
     raw = settings.CORS_ORIGINS.strip()
     if raw == "*":
@@ -75,13 +70,13 @@ app.add_middleware(
 )
 
 
-# ─── Health ─────────────────────────────────────────────
+# ─── Health ─────────────────────────────
 @app.get("/health")
 async def health():
     return {"status": "ok"}
 
 
-# ─── Static Frontend (optional) ─────────────────────────
+# ─── Static Frontend (optional) ─────────
 _static_root = settings.FRONTEND_OUT_DIR
 
 if os.path.isdir(_static_root):
